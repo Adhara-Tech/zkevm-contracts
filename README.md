@@ -82,3 +82,10 @@ The smartcontract used to verify a proof, it's a generated contract from zkEVM R
 ```
 git config --local core.hooksPath .githooks/
 ```
+## Reminder 
+
+git checkout v6.0.0-rc.1-fork.9
+npm i
+npm run dockerv2:contracts
+
+docker.io/hermeznetwork/geth-zkevm-contracts
