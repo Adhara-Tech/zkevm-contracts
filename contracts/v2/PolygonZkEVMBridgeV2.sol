@@ -11,6 +11,7 @@ import "../interfaces/IBridgeMessageReceiver.sol";
 import "./interfaces/IPolygonZkEVMBridgeV2.sol";
 import "../lib/EmergencyManager.sol";
 import "../lib/GlobalExitRootLib.sol";
+import "../lib/Token.sol";
 
 /**
  * PolygonZkEVMBridge that will be deployed on Ethereum and all Polygon rollups
@@ -90,6 +91,10 @@ contract PolygonZkEVMBridgeV2 is
 
     // WETH address
     TokenWrapped public WETHToken;
+
+    Token public atc;
+    string public atcAccount;
+    bool isL2;
 
     /**
      * @dev Emitted when bridge assets or messages to another network
@@ -283,6 +288,175 @@ contract PolygonZkEVMBridgeV2 is
                 // Encode metadata
                 metadata = getTokenMetadata(token);
             }
+        }
+
+        emit BridgeEvent(
+            _LEAF_TYPE_ASSET,
+            originNetwork,
+            originTokenAddress,
+            destinationNetwork,
+            destinationAddress,
+            leafAmount,
+            metadata,
+            uint32(depositCount)
+        );
+
+        _addLeaf(
+            getLeafValue(
+                _LEAF_TYPE_ASSET,
+                originNetwork,
+                originTokenAddress,
+                destinationNetwork,
+                destinationAddress,
+                leafAmount,
+                keccak256(metadata)
+            )
+        );
+
+        // Update the new root to the global exit root manager if set by the user
+        if (forceUpdateGlobalExitRoot) {
+            _updateGlobalExitRoot();
+        }
+    }
+
+    function bridgeAT(
+        uint32 destinationNetwork,
+        address destinationAddress,
+        uint256 amount,
+        address token,
+        bool forceUpdateGlobalExitRoot,
+        bytes calldata permitData
+    ) public payable virtual ifNotEmergencyState nonReentrant {
+        if (isL2) {
+            _bridgeATL2(destinationNetwork, destinationAddress, amount, token, forceUpdateGlobalExitRoot, permitData);
+        } else {
+            _bridgeATL1(destinationNetwork, destinationAddress, amount, token, forceUpdateGlobalExitRoot, permitData);
+        }
+    }
+
+    function _bridgeATL1(
+        uint32 destinationNetwork,
+        address destinationAddress,
+        uint256 amount,
+        address token,
+        bool forceUpdateGlobalExitRoot,
+        bytes calldata permitData
+    ) internal {
+        if (destinationNetwork == networkID) {
+           revert DestinationNetworkInvalid();
+        }
+
+        address originTokenAddress = address(atc);
+        uint32 originNetwork = networkID;
+        bytes memory metadata;
+        uint256 leafAmount = amount;
+
+        if (token == address(0)) {
+          revert NotValidToken();
+        }
+        if (msg.value != 0) {
+          revert MsgValueNotZero();
+        }
+        if (permitData.length == 0) {
+          revert NotValidSignature();
+        }
+        if (token == address(atc)) {
+          // Use permit if any
+          Token token = Token(token);
+          string memory operationId = abi.decode( permitData, (string));
+          ( string memory fromAccount,
+            string memory toAccount,
+            string memory notaryId,
+            uint256 amount,
+            uint256 expiryTimestamp,
+            string memory metaData,
+            bytes32 holdStatus,
+            bytes32 holdType,
+            bytes32 signer
+          ) = token.getHoldData(operationId);
+          if (keccak256(abi.encodePacked(toAccount)) != keccak256(abi.encodePacked(atcAccount))) {
+            // revert
+          }
+          uint256 balanceBefore = token.getAvailableBalanceOf(atcAccount);
+          // Move tokens to bridge account by executing hold where it is marked as notary
+          if (!Token(token).executeHold(operationId)) {
+            // revert
+          }
+          uint256 balanceAfter = token.getAvailableBalanceOf(atcAccount);
+          // Override leafAmount with the received amount
+          leafAmount = balanceAfter - balanceBefore;
+          if (amount != leafAmount) {
+            revert NotValidAmount();
+          }
+          metadata = abi.encode(operationId, fromAccount, toAccount);
+        } else {
+          revert NotValidToken();
+        }
+
+        emit BridgeEvent(
+            _LEAF_TYPE_ASSET,
+            originNetwork,
+            originTokenAddress,
+            destinationNetwork,
+            destinationAddress,
+            leafAmount,
+            metadata,
+            uint32(depositCount)
+        );
+
+        _addLeaf(
+            getLeafValue(
+                _LEAF_TYPE_ASSET,
+                originNetwork,
+                originTokenAddress,
+                destinationNetwork,
+                destinationAddress,
+                leafAmount,
+                keccak256(metadata)
+            )
+        );
+
+        // Update the new root to the global exit root manager if set by the user
+        if (forceUpdateGlobalExitRoot) {
+            _updateGlobalExitRoot();
+        }
+    }
+
+    function _bridgeATL2(
+        uint32 destinationNetwork,
+        address destinationAddress,
+        uint256 amount,
+        address token,
+        bool forceUpdateGlobalExitRoot,
+        bytes calldata permitData
+    ) internal {
+        if (destinationNetwork == networkID) {
+            revert DestinationNetworkInvalid();
+        }
+
+        address originTokenAddress = address(atc);
+        uint32 originNetwork = networkID;
+        bytes memory metadata;
+        uint256 leafAmount = amount;
+
+        if (token == address(0)) {
+            revert NotValidToken();
+        }
+        if (msg.value != 0) {
+            revert MsgValueNotZero();
+        }
+
+        if (token == address(atc)) {
+            // Use permit if any
+            string memory fromAccount = abi.decode(permitData, (string));
+            string memory operationId = "generate-me";
+            // TODO Use holds? So that bridge can destroy its own tokens?
+            if (!Token(token).destroy(operationId, fromAccount, amount, "0x")) {
+                // revert
+            }
+            metadata = abi.encodePacked(operationId, fromAccount);
+        } else {
+            revert NotValidToken();
         }
 
         emit BridgeEvent(
@@ -563,6 +737,136 @@ contract PolygonZkEVMBridgeV2 is
                 }
             }
         }
+
+        emit ClaimEvent(
+            globalIndex,
+            originNetwork,
+            originTokenAddress,
+            destinationAddress,
+            amount
+        );
+    }
+
+    // Metadata contains the operationId that was used on L2 to burn tokens from a specific account.
+    function claimAT(
+        bytes32[_DEPOSIT_CONTRACT_TREE_DEPTH] calldata smtProofLocalExitRoot,
+        bytes32[_DEPOSIT_CONTRACT_TREE_DEPTH] calldata smtProofRollupExitRoot,
+        uint256 globalIndex,
+        bytes32 mainnetExitRoot,
+        bytes32 rollupExitRoot,
+        uint32 originNetwork,
+        address originTokenAddress,
+        uint32 destinationNetwork,
+        address destinationAddress,
+        uint256 amount,
+        bytes calldata metadata
+    ) external ifNotEmergencyState {
+        if (isL2) {
+            _claimATL2(smtProofLocalExitRoot, smtProofRollupExitRoot, globalIndex, mainnetExitRoot,rollupExitRoot, originNetwork, originTokenAddress, destinationNetwork, destinationAddress, amount, metadata);
+        } else {
+            _claimATL1(smtProofLocalExitRoot, smtProofRollupExitRoot, globalIndex, mainnetExitRoot,rollupExitRoot, originNetwork, originTokenAddress, destinationNetwork, destinationAddress, amount, metadata);
+        }
+    }
+
+    function _claimATL1(
+        bytes32[_DEPOSIT_CONTRACT_TREE_DEPTH] calldata smtProofLocalExitRoot,
+        bytes32[_DEPOSIT_CONTRACT_TREE_DEPTH] calldata smtProofRollupExitRoot,
+        uint256 globalIndex,
+        bytes32 mainnetExitRoot,
+        bytes32 rollupExitRoot,
+        uint32 originNetwork,
+        address originTokenAddress,
+        uint32 destinationNetwork,
+        address destinationAddress,
+        uint256 amount,
+        bytes calldata metadata
+    ) internal {
+        // Destination network must be this networkID
+        if (destinationNetwork != networkID) {
+            revert DestinationNetworkInvalid();
+        }
+        if (destinationAddress != address(this)) {
+            revert DestinationNetworkInvalid();
+        }
+        // Verify leaf exist and it does not have been claimed
+        _verifyLeaf(
+            smtProofLocalExitRoot,
+            smtProofRollupExitRoot,
+            globalIndex,
+            mainnetExitRoot,
+            rollupExitRoot,
+            getLeafValue(
+                _LEAF_TYPE_ASSET,
+                originNetwork,
+                originTokenAddress,
+                destinationNetwork,
+                destinationAddress,
+                amount,
+                keccak256(metadata)
+            )
+        );
+        (string memory operationId, string memory fromAccount, string memory toAccount) = abi.decode(metadata, (string, string, string));
+        if (originTokenAddress == address(0)) {
+        }
+
+        // Transfer tokens from omnibus account
+        Token(atc).transfer(operationId, atcAccount, fromAccount, amount, "0x");
+
+        emit ClaimEvent(
+            globalIndex,
+            originNetwork,
+            originTokenAddress,
+            destinationAddress,
+            amount
+        );
+    }
+
+    function _claimATL2(
+        bytes32[_DEPOSIT_CONTRACT_TREE_DEPTH] calldata smtProofLocalExitRoot,
+        bytes32[_DEPOSIT_CONTRACT_TREE_DEPTH] calldata smtProofRollupExitRoot,
+        uint256 globalIndex,
+        bytes32 mainnetExitRoot,
+        bytes32 rollupExitRoot,
+        uint32 originNetwork,
+        address originTokenAddress,
+        uint32 destinationNetwork,
+        address destinationAddress,
+        uint256 amount,
+        bytes calldata metadata
+    ) internal {
+        // Destination network must be this networkID
+        if (destinationNetwork != networkID) {
+            revert DestinationNetworkInvalid();
+        }
+        if (destinationAddress != address(this)) {
+            revert DestinationNetworkInvalid();
+        }
+        // Verify leaf exist and it does not have been claimed
+        _verifyLeaf(
+            smtProofLocalExitRoot,
+            smtProofRollupExitRoot,
+            globalIndex,
+            mainnetExitRoot,
+            rollupExitRoot,
+            getLeafValue(
+                _LEAF_TYPE_ASSET,
+                originNetwork,
+                originTokenAddress,
+                destinationNetwork,
+                destinationAddress,
+                amount,
+                keccak256(metadata)
+            )
+        );
+        (string memory operationId, string memory fromAccount, string memory toAccount) = abi.decode(metadata, (string, string, string));
+        if (originTokenAddress == address(0)) {
+        }
+        // TODO: Origin network ??
+        if (keccak256(abi.encodePacked(toAccount)) != keccak256(abi.encodePacked(atcAccount))) {
+            revert NotValidOwner();
+        }
+        // Create tokens
+        Token(atc).create(operationId, fromAccount, amount, string(abi.encodePacked(rollupExitRoot)));
 
         emit ClaimEvent(
             globalIndex,

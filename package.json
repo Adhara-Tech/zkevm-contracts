@@ -77,7 +77,7 @@
     "docker:contracts": "./docker/scripts/v2/deploy-docker.sh",
     "dockerv2:contracts": "sudo ./docker/scripts/v2/deploy-dockerv2.sh",
     "push:docker:contracts": "docker push hermeznetwork/geth-zkevm-contracts",
-    "update:genesis": "node deployment/1_createGenesis.js && node deployment/1_createGenesis.js --test --input ../docker/scripts/deploy_parameters_docker.json --out ../docker/scripts/genesis_docker.json",
+    "update:genesis": "npx ts-node deployment/v2/1_createGenesis.ts && npx ts-node deployment/v2/1_createGenesis.ts --test --input ../docker/scripts/v2/deploy_parameters_docker.json --out ../docker/scripts/v2/genesis_docker.json",
     "coverage": "npx hardhat coverage --testfiles \"test/contractsv2/*.ts\"",
     "gas:report": "REPORT_GAS=true npx hardhat test",
     "gas:report:file": "rm -f .openzeppelin/unknown-*.json && REPORT_GAS=true REPORT_GAS_FILE=true npx hardhat test",

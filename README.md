@@ -86,6 +86,9 @@ git config --local core.hooksPath .githooks/
 
 git checkout v6.0.0-rc.1-fork.9
 npm i
+
+.githooks/pre-commit
+
 npm run dockerv2:contracts
 
-docker.io/hermeznetwork/geth-zkevm-contracts
+docker inspect --type=image docker.io/hermeznetwork/geth-zkevm-contracts

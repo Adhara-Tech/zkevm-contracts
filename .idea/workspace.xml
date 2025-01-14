@@ -4,7 +4,32 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3abd8ff6-3ee9-48a4-b8f8-f2c9890f0092" name="Changes" comment="" />
+    <list default="true" id="3abd8ff6-3ee9-48a4-b8f8-f2c9890f0092" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/compiled-contracts/Token.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/contracts/interfaces/IToken.sol" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/contracts/lib/Token.sol" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/lib/Token.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.githooks/pre-commit" beforeDir="false" afterPath="$PROJECT_DIR$/.githooks/pre-commit" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/compiled-contracts/ClaimCompressor.json" beforeDir="false" afterPath="$PROJECT_DIR$/compiled-contracts/ClaimCompressor.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/compiled-contracts/FflonkVerifier.json" beforeDir="false" afterPath="$PROJECT_DIR$/compiled-contracts/FflonkVerifier.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/compiled-contracts/PolygonRollupManager.json" beforeDir="false" afterPath="$PROJECT_DIR$/compiled-contracts/PolygonRollupManager.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/compiled-contracts/PolygonRollupManagerMock.json" beforeDir="false" afterPath="$PROJECT_DIR$/compiled-contracts/PolygonRollupManagerMock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/compiled-contracts/PolygonRollupManagerMockInternalTest.json" beforeDir="false" afterPath="$PROJECT_DIR$/compiled-contracts/PolygonRollupManagerMockInternalTest.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/compiled-contracts/PolygonValidiumEtrog.json" beforeDir="false" afterPath="$PROJECT_DIR$/compiled-contracts/PolygonValidiumEtrog.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/compiled-contracts/PolygonZkEVMBridgeV2.json" beforeDir="false" afterPath="$PROJECT_DIR$/compiled-contracts/PolygonZkEVMBridgeV2.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/compiled-contracts/PolygonZkEVMEtrog.json" beforeDir="false" afterPath="$PROJECT_DIR$/compiled-contracts/PolygonZkEVMEtrog.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/compiled-contracts/PolygonZkEVMEtrogPrevious.json" beforeDir="false" afterPath="$PROJECT_DIR$/compiled-contracts/PolygonZkEVMEtrogPrevious.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/compiled-contracts/PolygonZkEVMExistentEtrog.json" beforeDir="false" afterPath="$PROJECT_DIR$/compiled-contracts/PolygonZkEVMExistentEtrog.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/contracts/v2/PolygonZkEVMBridgeV2.sol" beforeDir="false" afterPath="$PROJECT_DIR$/contracts/v2/PolygonZkEVMBridgeV2.sol" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/contracts/v2/interfaces/IPolygonZkEVMBridgeV2.sol" beforeDir="false" afterPath="$PROJECT_DIR$/contracts/v2/interfaces/IPolygonZkEVMBridgeV2.sol" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/v2/PolygonZkEVMBridgeV2.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/v2/PolygonZkEVMBridgeV2.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/v2/interfaces/IPolygonZkEVMBridgeV2.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/v2/interfaces/IPolygonZkEVMBridgeV2.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tools/createGenesis/new_genesis.json" beforeDir="false" afterPath="$PROJECT_DIR$/tools/createGenesis/new_genesis.json" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -35,6 +60,7 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "git-widget-placeholder": "polygon-modified-contracts",
     "node.js.detected.package.eslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
