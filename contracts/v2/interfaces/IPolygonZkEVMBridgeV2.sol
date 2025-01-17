@@ -89,6 +89,11 @@ interface IPolygonZkEVMBridgeV2 {
      */
     error FailedTokenWrappedDeployment();
 
+    /**
+     * @dev Thrown when the bridged token is not valid
+     */
+    error NotValidToken();
+
     function wrappedTokenToTokenInfo(
         address destinationAddress
     ) external view returns (uint32, address);
@@ -100,6 +105,15 @@ interface IPolygonZkEVMBridgeV2 {
     function deactivateEmergencyState() external;
 
     function bridgeAsset(
+        uint32 destinationNetwork,
+        address destinationAddress,
+        uint256 amount,
+        address token,
+        bool forceUpdateGlobalExitRoot,
+        bytes calldata permitData
+    ) external payable;
+
+    function bridgeAT(
         uint32 destinationNetwork,
         address destinationAddress,
         uint256 amount,
@@ -124,6 +138,20 @@ interface IPolygonZkEVMBridgeV2 {
     ) external;
 
     function claimAsset(
+        bytes32[32] calldata smtProofLocalExitRoot,
+        bytes32[32] calldata smtProofRollupExitRoot,
+        uint256 globalIndex,
+        bytes32 mainnetExitRoot,
+        bytes32 rollupExitRoot,
+        uint32 originNetwork,
+        address originTokenAddress,
+        uint32 destinationNetwork,
+        address destinationAddress,
+        uint256 amount,
+        bytes calldata metadata
+    ) external;
+
+    function claimAT(
         bytes32[32] calldata smtProofLocalExitRoot,
         bytes32[32] calldata smtProofRollupExitRoot,
         uint256 globalIndex,
