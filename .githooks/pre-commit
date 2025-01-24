@@ -10,6 +10,7 @@ if npm run lint; then
     cp artifacts/contracts/PolygonZkEVMGlobalExitRoot.sol/PolygonZkEVMGlobalExitRoot.json compiled-contracts/
     cp artifacts/contracts/PolygonZkEVMGlobalExitRootL2.sol/PolygonZkEVMGlobalExitRootL2.json compiled-contracts/
     cp artifacts/contracts/lib/TokenWrapped.sol/TokenWrapped.json compiled-contracts/
+    cp artifacts/contracts/lib/Token.sol/Token.json compiled-contracts/
     cp artifacts/contracts/mocks/PolygonZkEVMBridgeMock.sol/PolygonZkEVMBridgeMock.json compiled-contracts/
     cp artifacts/contracts/mocks/ERC20PermitMock.sol/ERC20PermitMock.json compiled-contracts/
     cp artifacts/contracts/mocks/PolygonZkEVMGlobalExitRootL2Mock.sol/PolygonZkEVMGlobalExitRootL2Mock.json compiled-contracts/
@@ -22,7 +23,7 @@ if npm run lint; then
     cp artifacts/@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol/TransparentUpgradeableProxy.json compiled-contracts/
     cp artifacts/contracts/deployment/PolygonZkEVMDeployer.sol/PolygonZkEVMDeployer.json compiled-contracts/
     cp artifacts/contracts/PolygonZkEVMTimelock.sol/PolygonZkEVMTimelock.json compiled-contracts/
-    
+
     cp artifacts/contracts/v2/PolygonRollupManager.sol/PolygonRollupManager.json compiled-contracts/
     cp artifacts/contracts/v2/mocks/PolygonRollupManagerMock.sol/PolygonRollupManagerMock.json compiled-contracts/
     cp artifacts/contracts/v2/mocks/PolygonRollupManagerMockInternalTest.sol/PolygonRollupManagerMockInternalTest.json compiled-contracts/

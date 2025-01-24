@@ -76,6 +76,7 @@ async function main() {
     let finalProxyAdminAddress;
 
     let finalTimelockContractAdress;
+    let finalAssetTokenContractAdress;
 
     let finalzkEVMDeployerAdress;
 
@@ -264,6 +265,13 @@ async function main() {
     const proxyAdminInstance = proxyAdminFactory.attach(proxyAdminAddress as string) as ProxyAdmin;
     await (await proxyAdminInstance.connect(deployer).transferOwnership(finalTimelockContractAdress as string)).wait();
 
+    const assetTokenContractFactory = await ethers.getContractFactory("Token", deployer);
+    const assetTokenContract = await assetTokenContractFactory.deploy()
+    await assetTokenContract.waitForDeployment();
+    if (isMainnet === false) {
+        finalAssetTokenContractAdress = assetTokenContract.target;
+    }
+
     // Recreate genesis with the current information:
 
     // ZKEVMDeployer
@@ -401,6 +409,17 @@ async function main() {
         address: finalTimelockContractAdress,
         bytecode: timelockInfo.bytecode,
         storage: timelockInfo.storage,
+    });
+
+    const assetTokenInfo = await getAddressInfo(assetTokenContract.target);
+
+    genesis.push({
+        accountName: "AT implementation",
+        balance: "0",
+        nonce: "1",
+        address: "0x0000000000000000000000000000000011111111",
+        bytecode: assetTokenInfo.bytecode,
+        storage: assetTokenInfo.storage,
     });
 
     // Put nonces on deployers

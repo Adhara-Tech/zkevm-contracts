@@ -195,8 +195,6 @@ async function main() {
         )
     ).wait();
 
-    console.log("forkID");
-
     console.log("#######################\n");
     console.log("Added new Rollup Type deployed");
     const newRollupTypeID = await rollupManagerContract.rollupTypeCount();

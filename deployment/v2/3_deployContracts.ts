@@ -522,7 +522,7 @@ async function main() {
     expect(await polygonRollupManagerContract.hasRole(EMERGENCY_COUNCIL_ADMIN, emergencyCouncilAddress)).to.be.equal(
         true
     );
-    console.log('hello')
+
     // Assert admin address
     expect(await upgrades.erc1967.getAdminAddress(precalculateRollupManager)).to.be.equal(proxyAdminAddress);
     expect(await upgrades.erc1967.getAdminAddress(precalculateGlobalExitRootAddress)).to.be.equal(proxyAdminAddress);

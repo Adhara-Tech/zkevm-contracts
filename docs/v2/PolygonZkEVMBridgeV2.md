@@ -66,6 +66,33 @@ note User/UI must be aware of the existing/available networks when choosing the 
 |`forceUpdateGlobalExitRoot` | bool | Indicates if the new global exit root is updated or not
 |`permitData` | bytes | Raw data of the call `permit` of the token
 
+### bridgeAT
+```solidity
+  function bridgeAT(
+  ) public
+```
+
+
+
+
+### _bridgeATL1
+```solidity
+  function _bridgeATL1(
+  ) internal
+```
+
+
+
+
+### _bridgeATL2
+```solidity
+  function _bridgeATL2(
+  ) internal
+```
+
+
+
+
 ### bridgeMessage
 ```solidity
   function bridgeMessage(
@@ -171,6 +198,33 @@ to avoid possible synch attacks
 |`destinationAddress` | address | Address destination
 |`amount` | uint256 | Amount of tokens
 |`metadata` | bytes | Abi encoded metadata if any, empty otherwise
+
+### claimAT
+```solidity
+  function claimAT(
+  ) external
+```
+
+
+
+
+### _claimATL1
+```solidity
+  function _claimATL1(
+  ) internal
+```
+
+
+
+
+### _claimATL2
+```solidity
+  function _claimATL2(
+  ) internal
+```
+
+
+
 
 ### claimMessage
 ```solidity
