@@ -493,6 +493,7 @@ async function main() {
 
     console.log("pendingStateTimeout:", await polygonRollupManagerContract.pendingStateTimeout());
     console.log("trustedAggregatorTimeout:", await polygonRollupManagerContract.trustedAggregatorTimeout());
+    console.log("trustedAggregatorTimeout:", await polygonRollupManagerContract.version());
 
     // Check roles
     expect(await polygonRollupManagerContract.hasRole(DEFAULT_ADMIN_ROLE, timelockAddressRollupManager)).to.be.equal(
@@ -522,7 +523,7 @@ async function main() {
     expect(await polygonRollupManagerContract.hasRole(EMERGENCY_COUNCIL_ADMIN, emergencyCouncilAddress)).to.be.equal(
         true
     );
-
+    console.log('hello')
     // Assert admin address
     expect(await upgrades.erc1967.getAdminAddress(precalculateRollupManager)).to.be.equal(proxyAdminAddress);
     expect(await upgrades.erc1967.getAdminAddress(precalculateGlobalExitRootAddress)).to.be.equal(proxyAdminAddress);
