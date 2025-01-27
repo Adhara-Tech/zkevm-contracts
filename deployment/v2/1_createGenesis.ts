@@ -411,16 +411,16 @@ async function main() {
         storage: timelockInfo.storage,
     });
 
-    const assetTokenInfo = await getAddressInfo(assetTokenContract.target);
+    //const assetTokenInfo = await getAddressInfo(assetTokenContract.target);
 
-    genesis.push({
-        accountName: "AT implementation",
-        balance: "0",
-        nonce: "1",
-        address: "0x0000000000000000000000000000000011111111",
-        bytecode: assetTokenInfo.bytecode,
-        storage: assetTokenInfo.storage,
-    });
+    // genesis.push({
+    //     accountName: "AT implementation",
+    //     balance: "0",
+    //     nonce: "1",
+    //     address: "0x0000000000000000000000000000000011111111",
+    //     bytecode: assetTokenInfo.bytecode,
+    //     storage: assetTokenInfo.storage,
+    // });
 
     // Put nonces on deployers
 

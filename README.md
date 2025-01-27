@@ -112,7 +112,7 @@ Forking problems in the zkevm-node require further investigation.
 
 zkEVM node is looking for `UpdateZkEVMVersion` events to get fork ids. Investigate etherman code
 
-
+Find the genesis block number!! Manually and change genesis files.
 
 
 Debugging 
