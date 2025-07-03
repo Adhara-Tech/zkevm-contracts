@@ -1,0 +1,24 @@
+{
+    "rollupManagerAddress":"0x6c6c009cC348976dB4A908c92B24433d4F6edA43",
+    "rollupID": 1,
+    "chainID": 2151908,
+    "gasTokenAddress": "0x0000000000000000000000000000000000000000",
+    "bridgeManager": "0x635243A11B41072264Df6c9186e3f473402F94e9",
+    "sovereignWETHAddress": "0x0000000000000000000000000000000000000000",
+    "sovereignWETHAddressIsNotMintable": false,
+    "globalExitRootUpdater": "0xc653eCD4AC5153a3700Fb13442Bcf00A691cca16",
+    "globalExitRootRemover": "0x635243A11B41072264Df6c9186e3f473402F94e9",
+    "setPreMintAccounts": true,
+    "preMintAccounts": [
+        {
+            "balance": "1000000000000000000",
+            "address": "0x8576158a89648aA88B6036f47B8b74Fc0C2b5c66"
+        }
+    ],
+    "setTimelockParameters": true,
+    "timelockParameters": {
+        "adminAddress": "0xE34aaF64b29273B7D567FCFc40544c014EEe9970",
+        "minDelay": 3600
+    },
+    "formatGenesis": "geth"
+}
