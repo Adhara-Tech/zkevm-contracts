@@ -9,10 +9,12 @@ import "../lib/TokenWrapped.sol";
 import "../interfaces/IBasePolygonZkEVMGlobalExitRoot.sol";
 import "../interfaces/IBridgeMessageReceiver.sol";
 import "./interfaces/IPolygonZkEVMBridgeV2.sol";
+import "./interfaces/IATC.sol";
 import "../lib/EmergencyManager.sol";
 import "../lib/GlobalExitRootLib.sol";
 import "./interfaces/ITokenWrappedBridgeInitCode.sol";
 import "./lib/TokenWrappedBridgeInitCode.sol";
+import "./lib/ATC.sol";
 
 /**
  * PolygonZkEVMBridge that will be deployed on Ethereum and all Polygon rollups
@@ -84,6 +86,18 @@ contract PolygonZkEVMBridgeV2 is
     // Rollup manager address, previously PolygonZkEVM
     /// @custom:oz-renamed-from polygonZkEVMaddress
     address public polygonRollupManager;
+
+    // Custom address
+    address public depositTokenAddress;
+
+    // Custom network
+    uint32 public depositTokenNetwork;
+
+    // Omnibus account
+    string public polygonBridgeAccount;
+
+    // Custom meta data identifier
+    string public constant depositTokenIdentifier = "deposit-token";
 
     // Native address
     address public gasTokenAddress;
@@ -179,16 +193,22 @@ contract PolygonZkEVMBridgeV2 is
             // WETHToken, gasTokenAddress and gasTokenNetwork will be 0
             // gasTokenMetadata will be empty
         } else {
-            // Gas token will be an erc20
-            gasTokenAddress = _gasTokenAddress;
-            gasTokenNetwork = _gasTokenNetwork;
-            gasTokenMetadata = _gasTokenMetadata;
+            if (keccak256(_gasTokenMetadata) == keccak256(bytes(depositTokenIdentifier))) {
+                // Gas token will be a deposit token
+                depositTokenAddress = _gasTokenAddress;
+                depositTokenNetwork = _gasTokenNetwork;
+            } else {
+                // Gas token will be an erc20
+                gasTokenAddress = _gasTokenAddress;
+                gasTokenNetwork = _gasTokenNetwork;
+                gasTokenMetadata = _gasTokenMetadata;
 
-            // Create a wrapped token for WETH, with salt == 0
-            WETHToken = _deployWrappedToken(
-                0, // salt
-                abi.encode("Wrapped Ether", "WETH", 18)
-            );
+                // Create a wrapped token for WETH, with salt == 0
+                WETHToken = _deployWrappedToken(
+                    0, // salt
+                    abi.encode("Wrapped Ether", "WETH", 18)
+                );
+            }
         }
 
         // Initialize OZ contracts
@@ -243,6 +263,42 @@ contract PolygonZkEVMBridgeV2 is
             originNetwork = gasTokenNetwork;
             originTokenAddress = gasTokenAddress;
             metadata = gasTokenMetadata;
+        } else if (token == depositTokenAddress){
+           // Check msg.value is 0 if tokens are bridged
+           if (msg.value != 0) {
+               revert MsgValueNotZero();
+           }
+           // Use permit data for deposit tokens
+           string memory operationId;
+           if (permitData.length != 0) {
+               operationId = abi.decode(permitData, (string));
+           } else {
+               revert("The operation id of the hold, required before bridging to another network, must be present in the permit data.");
+           }
+           // TODO: Check amounts and execute hold placed for this bridge contract by the sender in the deposit token contract
+            /*
+           ( string memory fromAccount,
+             string memory toAccount,
+             string memory notaryId,
+             uint256 holdAmount,
+             uint256 expiryTimestamp,
+             bytes32 holdStatus,
+             bytes32 holdType
+           ) = IATC(token).getHoldData(operationId);
+           if (keccak256(abi.encodePacked(toAccount)) != keccak256(abi.encodePacked(polygonBridgeAccount))) {
+             revert("The hold, required before bridging to another network, must have the bridge account as beneficiary.");
+           }
+           if (amount != holdAmount) {
+             revert("The hold, required before bridging to another network, must be placed for the same amount as given in the request.");
+           }
+           //uint256 balanceBefore = IATC(token).getAvailableBalanceOf(polygonBridgeAccount);
+           IATC(token).executeHold(operationId);
+           //uint256 balanceAfter = IATC(token).getAvailableBalanceOf(polygonBridgeAccount);
+           */
+           metadata = executeHold(token, operationId, amount);
+           leafAmount = amount;
+           originTokenAddress = depositTokenAddress;
+           originNetwork = networkID;
         } else {
             // Check msg.value is 0 if tokens are bridged
             if (msg.value != 0) {
@@ -331,6 +387,26 @@ contract PolygonZkEVMBridgeV2 is
         if (forceUpdateGlobalExitRoot) {
             _updateGlobalExitRoot();
         }
+    }
+
+    function executeHold(address token, string memory operationId, uint256 amount
+    ) internal returns (bytes memory) {
+        ( string memory fromAccount,
+            string memory toAccount,
+            string memory notaryId,
+            uint256 holdAmount,
+            uint256 expiryTimestamp,
+            bytes32 holdStatus,
+            bytes32 holdType
+        ) = IATC(token).getHoldData(operationId);
+        if (keccak256(abi.encodePacked(toAccount)) != keccak256(abi.encodePacked(polygonBridgeAccount))) {
+            revert("The hold, required before bridging to another network, must have the bridge account as beneficiary.");
+        }
+        if (amount != holdAmount) {
+            revert("The hold, required before bridging to another network, must be placed for the same amount as given in the request.");
+        }
+        IATC(token).executeHold(operationId);
+        return abi.encode(operationId, fromAccount, toAccount, notaryId, holdAmount, expiryTimestamp, holdStatus, holdType);
     }
 
     /**
@@ -515,11 +591,23 @@ contract PolygonZkEVMBridgeV2 is
                 _claimWrappedAsset(WETHToken, destinationAddress, amount);
             }
         } else {
-            // Check if it's gas token
-            if (
+
+            if ( // Check if it is a deposit token
+                originTokenAddress == depositTokenAddress &&
+                originNetwork == depositTokenNetwork
+            ) { // This is a deposit token
+                if (originNetwork == networkID) {
+                  // The token is a deposit token from this network
+
+                } else {
+                  // The tokens is not from this network,
+                  // TODO: Transfer tokens from the bridge address to the destination address
+                  claimOnExecutedHold(destinationAddress, metadata);
+                }
+            } else if ( // Check if it is a gas token
                 originTokenAddress == gasTokenAddress &&
                 gasTokenNetwork == originNetwork
-            ) {
+            ) { // This is for a gas token
                 // Transfer gas token
                 /* solhint-disable avoid-low-level-calls */
                 (bool success, ) = destinationAddress.call{value: amount}(
@@ -528,8 +616,8 @@ contract PolygonZkEVMBridgeV2 is
                 if (!success) {
                     revert EtherTransferFailed();
                 }
-            } else {
-                // Transfer tokens
+            } else { // This is for an erc token
+                // Transfer erc tokens
                 if (originNetwork == networkID) {
                     // The token is an ERC20 from this network
                     IERC20Upgradeable(originTokenAddress).safeTransfer(
@@ -596,6 +684,20 @@ contract PolygonZkEVMBridgeV2 is
             destinationAddress,
             amount
         );
+    }
+
+    function claimOnExecutedHold(address token, bytes memory metadata
+    ) internal {
+        ( string memory operationId,
+            string memory fromAccount,
+            string memory toAccount,
+            string memory notaryId,
+            uint256 holdAmount,
+            uint256 expiryTimestamp,
+            bytes32 holdStatus,
+            bytes32 holdType
+        ) = abi.decode(metadata, (string,string, string, string,uint256,uint256,bytes32,bytes32));
+        IATC(token).transfer(operationId, toAccount, fromAccount, holdAmount, "");
     }
 
     /**

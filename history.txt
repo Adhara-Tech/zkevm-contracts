@@ -1,0 +1,190 @@
+ 1984  git fetch upstream --tags
+ 1985  git checkout v10.0.0-rc.6
+ 1988  npm i
+ 1989  npm run dockerv2:contracts
+ 1990  docker run -p 8545:8545 hermeznetwork/geth-zkevm-contracts
+ 1991  docker ps
+
+
+
+cd temp
+
+docker pull jhkimqd/zkevm-contracts:v10.0.0-rc.6-fork.12
+docker create --name tempimage jhkimqd/zkevm-contracts:v10.0.0-rc.6-fork.12
+docker export tempimage | tar -x -C jhkimqd_image_contents
+
+cd jhkimqd_image_contents
+
+
+version="v10.0.0-rc.6-fork.12"
+docker build . \
+  --tag local/zkevm-contracts:$version \
+  --build-arg POLYCLI_VERSION="v0.1.73" \
+  --build-arg FOUNDRY_VERSION=stable \
+  --file zkevm-contracts.Dockerfile
+
+docker tag local/zkevm-contracts:v10.0.0-rc.6-fork.12 mkrielza/zkevm-contracts:v10.0.0-rc.6-fork.12
+docker push mkrielza/zkevm-contracts:v10.0.0-rc.6-fork.12
+docker pull mkrielza/zkevm-contracts:v10.0.0-rc.6-fork.12
+
+cd kurtosis-cdk
+
+# change the input_parser.star
+
+kurtosis clean -a && kurtosis run --enclave cdk --args-file .github/tests/chains/op-succinct.yml ./
+
+
+
+-----
+
+
+snow@Pallas:~/temp/zkevm-contracts$ git status
+HEAD detached at origin/feature/tool-fix
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        AddressUpgradeable.sol/
+        NOTES.txt
+        bin/
+        build-info/
+        tools/createSovereignGenesis/create-genesis-sovereign-params.json copy.example
+        zkevm-contracts.Dockerfile
+
+nothing added to commit but untracked files present (use "git add" to track)
+
+git remote -v
+
+home    git@github.com:Adhara-Tech/zkevm-contracts.git (fetch)
+home    git@github.com:Adhara-Tech/zkevm-contracts.git (push)
+origin  git@github.com:agglayer/agg-contracts-internal.git (fetch)
+origin  git@github.com:agglayer/agg-contracts-internal.git (push)
+remote  git@github.com:agglayer/agglayer-contracts.git (fetch)
+remote  git@github.com:agglayer/agglayer-contracts.git (push)
+
+git push home feature/tool-fix/v10.0.0-rc.6-fork.12
+
+
+cd ~/zkevm-contracts
+git fetch origin feature/tool-fix/v10.0.0-rc.6-fork.12
+git checkout feature/tool-fix/v10.0.0-rc.6-fork.12
+
+modify contracts
+
+
+version="v10.0.0-rc.6-fork.12"
+docker build . \
+  --tag local/zkevm-contracts:$version \
+  --build-arg POLYCLI_VERSION="v0.1.73" \
+  --build-arg FOUNDRY_VERSION=stable \
+  --file zkevm-contracts.Dockerfile
+
+docker tag local/zkevm-contracts:v10.0.0-rc.6-fork.12 mkrielza/zkevm-contracts:v10.0.0-rc.6-fork.12
+docker push mkrielza/zkevm-contracts:v10.0.0-rc.6-fork.12
+
+
+kurtosis clean -a && kurtosis run --enclave cdk --args-file .github/tests/chains/op-succinct.yml ./
+
+
+-----------
+
+
+cast wallet new
+Successfully created new keypair.
+Address:     0x56560d322523d634d5bF42BAaC370Aa76bDf8E2A
+Private key: 0xcdde2d3d98e85b8eae2fb3d3c4983b1104478f9ef36644d81ec59300ee4b02b0
+
+
+polycli ulxly bridge asset \
+--bridge-address $(kurtosis service exec cdk contracts-001 'jq -r '.polygonZkEVMBridgeAddress' /opt/zkevm/combined.json') \
+--private-key 0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625 \
+--destination-address 0x56560d322523d634d5bF42BAaC370Aa76bDf8E2A \
+--destination-network 1 \
+--value 1000000000000000000 \
+--rpc-url http://$(kurtosis port print cdk el-1-geth-lighthouse rpc)
+
+cast balance --ether \
+--rpc-url $(kurtosis port print cdk op-el-1-op-geth-op-node-001 rpc) \
+0x56560d322523d634d5bF42BAaC370Aa76bDf8E2A
+
+The command was successfully executed and returned '0'.
+4:38PM INF bridgeTxn: 0xe927f3e4417f4273fe6762f7a890b76a3cda58108de99d47be1bdb1d07463dc0
+4:38PM ERR Deposit transaction failed txHash=0xe927f3e4417f4273fe6762f7a890b76a3cda58108de99d47be1bdb1d07463dc0
+4:38PM INF Perhaps try increasing the gas limit GasUsed=175525 cumulativeGasUsedForTx=338301
+
+
+cast tx 0xe927f3e4417f4273fe6762f7a890b76a3cda58108de99d47be1bdb1d07463dc0 \
+  --rpc-url http://$(kurtosis port print cdk el-1-geth-lighthouse rpc)
+
+blockHash            0xf1f3b9371056a7ae9c184b5d8235c34fa410f577fdf029d52e935fad9d8a406c
+blockNumber          571
+from                 0xE34aaF64b29273B7D567FCFc40544c014EEe9970
+transactionIndex     1
+effectiveGasPrice    1000007
+
+accessList           []
+chainId              271828
+gasLimit             175525
+hash                 0xe927f3e4417f4273fe6762f7a890b76a3cda58108de99d47be1bdb1d07463dc0
+input                0xcd586579000000000000000000000000000000000000000000000000000000000000000100000000000000000000000056560d322523d634d5bf42baac370aa76bdf8e2a0000000000000000000000000000000000000000000000000de0b6b3a76400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000c00000000000000000000000000000000000000000000000000000000000000000
+maxFeePerGas         1000014
+maxPriorityFeePerGas 1000000
+nonce                22
+r                    0x1155702643007c5eb3656439c4274dd7665b5e35a7296ec105fb4be6019453b4
+s                    0x035fe35be0f1b14e67efa41d7ef82cd4abdbb7cfd7e8b2ac4cb3d799c0c11f05
+to                   0x9D86b4ec07d7e292F296Dad324b14C06F058a4f1
+type                 2
+value                1000000000000000000
+yParity              0
+
+
+polycli ulxly bridge asset \
+--bridge-address $(kurtosis service exec cdk contracts-001 'jq -r '.polygonZkEVMBridgeAddress' /opt/zkevm/combined.json') \
+--private-key 0x12d7de8621a77640c9241b2595ba78ce443d05e94090365ab3bb5e19df82c625 \
+--destination-address 0x56560d322523d634d5bF42BAaC370Aa76bDf8E2A \
+--destination-network 1 \
+--value 1000000000000000000 \
+--rpc-url http://$(kurtosis port print cdk el-1-geth-lighthouse rpc) \
+--gas-limit 1000000
+
+The command was successfully executed and returned '0'.
+4:42PM INF bridgeTxn: 0xb3ebce8ab170e67dcf01ea44e363caa08ea3bd5980bc60335c96f0422a9016b8
+4:42PM INF transaction successful txHash=0xb3ebce8ab170e67dcf01ea44e363caa08ea3bd5980bc60335c96f0422a9016b8
+
+cast balance --ether --rpc-url $(kurtosis port print cdk op-el-1-op-geth-op-node-001 rpc) 0x56560d322523d634d5bF42BAaC370Aa76bDf8E2A
+
+1.000000000000000000
+
+cast send \
+--rpc-url $(kurtosis port print cdk op-el-1-op-geth-op-node-001 rpc) \
+--private-key 0xd265e9a6df0b00e863b54fd409f9baed1a92d91f512f760d234c1360a1286d99 \
+0x56560d322523d634d5bF42BAaC370Aa76bDf8E2A \
+$(echo -n 'data:,Hello Agglayer!' | xxd -p)
+
+Error: server returned an error response: error code -32000: insufficient funds for transfer
+
+cast wallet address 0xd265e9a6df0b00e863b54fd409f9baed1a92d91f512f760d234c1360a1286d99
+0x50e897231a2BdbdCB580A8b182D5f4707467A504
+
+cast balance --ether --rpc-url $(kurtosis port print cdk op-el-1-op-geth-op-node-001 rpc) 0x50e897231a2BdbdCB580A8b182D5f4707467A504
+
+cast send \
+  --rpc-url $(kurtosis port print cdk op-el-1-op-geth-op-node-001 rpc) \
+  --private-key 0xcdde2d3d98e85b8eae2fb3d3c4983b1104478f9ef36644d81ec59300ee4b02b0 \
+  0x50e897231a2BdbdCB580A8b182D5f4707467A504 \
+  --value 100000000000000000
+
+
+curl -s $(kurtosis port print cdk op-el-1-op-geth-op-node-001 rpc) -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"eth_getBalance","params":["0x50e897231a2bdbdcb580a8b182d5f4707467a504","latest"],"id":1}'
+
+{"jsonrpc":"2.0","id":1,"result":"0x16345785d8a0000"}
+
+cast balance --ether --rpc-url $(kurtosis port print cdk op-el-1-op-geth-op-node-001 rpc) 0x50e897231a2bdbdcb580a8b182d5f4707467a504
+
+cast send \
+--rpc-url $(kurtosis port print cdk op-el-1-op-geth-op-node-001 rpc) \
+--private-key 0xd265e9a6df0b00e863b54fd409f9baed1a92d91f512f760d234c1360a1286d99 \
+0x56560d322523d634d5bF42BAaC370Aa76bDf8E2A \
+$(echo -n 'data:,Hello Agglayer!' | xxd -p)
+
+cast tx --rpc-url $(kurtosis port print cdk op-el-1-op-geth-op-node-001 rpc) 0x502e75feba62261798c6c6ab1d2bc98f0e2eb5fba85ca1d2fb4ffafbddf13672 input | xxd -r -p
+
+data:,Hello Agglayer!
