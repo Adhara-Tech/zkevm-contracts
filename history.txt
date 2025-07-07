@@ -67,7 +67,9 @@ cd ~/zkevm-contracts
 git fetch origin feature/tool-fix/v10.0.0-rc.6-fork.12
 git checkout feature/tool-fix/v10.0.0-rc.6-fork.12
 
-modify contracts
+npm i
+
+modify contracts to include deposit-token contract
 
 
 version="v10.0.0-rc.6-fork.12"
@@ -80,6 +82,9 @@ docker build . \
 docker tag local/zkevm-contracts:v10.0.0-rc.6-fork.12 mkrielza/zkevm-contracts:v10.0.0-rc.6-fork.12
 docker push mkrielza/zkevm-contracts:v10.0.0-rc.6-fork.12
 
+go to kurtosis-cdk repo
+
+change input_parser.star
 
 kurtosis clean -a && kurtosis run --enclave cdk --args-file .github/tests/chains/op-succinct.yml ./
 
