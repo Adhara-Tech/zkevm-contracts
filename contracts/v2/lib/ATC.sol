@@ -9,7 +9,7 @@ import { IATC } from "../interfaces/IATC.sol";
  * @dev     It supports standard ATC functions such as creating, destroying, transferring tokens,
  *          and placing holds
  */
-abstract contract ATC is IATC {
+contract ATC is IATC {
 
 
   /* Hold status codes */

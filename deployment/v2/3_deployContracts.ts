@@ -19,7 +19,8 @@ const pathOZUpgradability = path.join(__dirname, `../../.openzeppelin/${process.
 
 import {
     AggLayerGateway,
-    PolygonZkEVMBridgeV2,
+    //PolygonZkEVMBridgeV2,
+    PolygonZkEVMDepositTokenBridge,
     PolygonZkEVMDeployer,
     PolygonZkEVMGlobalExitRootV2,
     PolygonZkEVMTimelock,
@@ -200,26 +201,49 @@ async function main() {
     }
 
     // Deploy implementation PolygonZkEVMBridge
-    const polygonZkEVMBridgeFactory = await ethers.getContractFactory("PolygonZkEVMBridgeV2", deployer);
+    // const polygonZkEVMBridgeFactory = await ethers.getContractFactory("PolygonZkEVMBridgeV2", deployer);
+    // const deployTransactionBridge = (await polygonZkEVMBridgeFactory.getDeployTransaction()).data;
+    // const dataCallNull = null;
+    // // Mandatory to override the gasLimit since the estimation with create are mess up D:
+    // const overrideGasLimit = 5500000n;
+    // const [bridgeImplementationAddress, isBridgeImplDeployed] = await create2Deployment(
+    //     zkEVMDeployerContract,
+    //     salt,
+    //     deployTransactionBridge,
+    //     dataCallNull,
+    //     deployer,
+    //     overrideGasLimit
+    // );
+    //
+    // if (isBridgeImplDeployed) {
+    //     console.log("#######################\n");
+    //     console.log("bridge impl deployed to:", bridgeImplementationAddress);
+    // } else {
+    //     console.log("#######################\n");
+    //     console.log("bridge impl was already deployed to:", bridgeImplementationAddress);
+    // }
+
+    // Deploy implementation PolygonZkEVMDepositTokenBridge
+    const polygonZkEVMBridgeFactory = await ethers.getContractFactory("PolygonZkEVMDepositTokenBridge", deployer);
     const deployTransactionBridge = (await polygonZkEVMBridgeFactory.getDeployTransaction()).data;
     const dataCallNull = null;
     // Mandatory to override the gasLimit since the estimation with create are mess up D:
-    const overrideGasLimit = 5500000n;
+    const overrideGasLimit = 9000000n;
     const [bridgeImplementationAddress, isBridgeImplDeployed] = await create2Deployment(
-        zkEVMDeployerContract,
-        salt,
-        deployTransactionBridge,
-        dataCallNull,
-        deployer,
-        overrideGasLimit
+      zkEVMDeployerContract,
+      salt,
+      deployTransactionBridge,
+      dataCallNull,
+      deployer,
+      overrideGasLimit
     );
 
     if (isBridgeImplDeployed) {
         console.log("#######################\n");
-        console.log("bridge impl deployed to:", bridgeImplementationAddress);
+        console.log("deposit token bridge impl deployed to:", bridgeImplementationAddress);
     } else {
         console.log("#######################\n");
-        console.log("bridge impl was already deployed to:", bridgeImplementationAddress);
+        console.log("deposit token bridge impl was already deployed to:", bridgeImplementationAddress);
     }
 
     let precalculateGlobalExitRootAddress;
@@ -302,12 +326,12 @@ async function main() {
     ).data;
 
     const dataCallProxy = polygonZkEVMBridgeFactory.interface.encodeFunctionData("initialize", [
-        networkIDMainnet,
-        gasTokenAddressMainnet,
-        gasTokenNetworkMainnet,
+        networkIDMainnet,       // TODO: localNetworkId
+        gasTokenAddressMainnet, // TODO: depositTokenAddress
+        gasTokenNetworkMainnet, // TODO: depositTokenNetwork
         precalculateGlobalExitRootAddress,
         precalculateRollupManager,
-        gasTokenMetadata,
+        gasTokenMetadata,       // TODO: "deposit-token"
     ]);
 
     const [proxyBridgeAddress, isBridgeProxyDeployed] = await create2Deployment(
@@ -317,7 +341,7 @@ async function main() {
         dataCallProxy,
         deployer
     );
-    const polygonZkEVMBridgeContract = polygonZkEVMBridgeFactory.attach(proxyBridgeAddress) as PolygonZkEVMBridgeV2;
+    const polygonZkEVMBridgeContract = polygonZkEVMBridgeFactory.attach(proxyBridgeAddress) as PolygonZkEVMDepositTokenBridge;
 
     if (isBridgeProxyDeployed) {
         console.log("#######################\n");

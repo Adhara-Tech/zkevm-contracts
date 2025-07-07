@@ -94,7 +94,7 @@ contract PolygonZkEVMDepositTokenBridge is
     uint32 public depositTokenNetwork;
 
     // Omnibus account
-    string public polygonBridgeAccount;
+    string public depositBridgeAccount;
 
     // Custom meta data identifier
     string public constant depositTokenIdentifier = "deposit-token";
@@ -399,7 +399,7 @@ contract PolygonZkEVMDepositTokenBridge is
             bytes32 holdStatus,
             bytes32 holdType
         ) = IATC(token).getHoldData(operationId);
-        if (keccak256(abi.encodePacked(toAccount)) != keccak256(abi.encodePacked(polygonBridgeAccount))) {
+        if (keccak256(abi.encodePacked(toAccount)) != keccak256(abi.encodePacked(depositBridgeAccount))) {
             revert("The hold, required before bridging to another network, must have the bridge account as beneficiary.");
         }
         if (amount != holdAmount) {

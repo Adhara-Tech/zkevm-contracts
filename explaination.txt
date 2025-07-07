@@ -1,0 +1,42 @@
+Summary of 3_deployContracts.ts
+
+Based on the standard Polygon zkEVM stack, the following contracts are typically deployed:
+
+1. Rollup Components
+
+  PolygonZkEVMEtrog (or equivalent custom for CDK): the L1 rollup entry point for validating sequenced transactions
+
+  PolygonRollupManager: manages state roots, validity, and sequencing
+
+2. Exit Root Contract
+
+  PolygonZkEVMGlobalExitRootV2: tracks the global exit root for cross-chain withdrawals
+
+3. Bridge Contracts
+
+  Old-style bridge: PolygonZkEVMBridge or earlier bridge variant (for backward compatibility)
+
+  New bridge: PolygonZkEVMBridgeV2 as the improved version with upgraded functionality
+
+Both may be deployed so the system can support old and new bridge operations without disruption. V1 is typically retained for legacy use and migration.
+
+4. Timelock and Governance
+
+PolygonZkEVMTimelock: governs admin-level upgrades on the bridge or rollup
+
+5. Deployer Utility
+
+PolygonZkEVMDeployer: your zkEVMDeployerContract, already deployed in earlier steps
+
+----
+
+Add initialization logic:
+
+const bridgeProxy = await ethers.getContractAt("PolygonZkEVMBridgeV2", implAddress);
+await bridgeProxy.initialize(admin, rollupManagerAddress, timelockAddress);
+
+Integrate with the exit-root & rollup manager:
+
+exitRootContract.setBridgeAddress(implAddress);
+
+Mimic V2 deployment steps:

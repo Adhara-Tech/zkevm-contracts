@@ -72,8 +72,7 @@ npm i
 modify contracts to include deposit-token contract
 
 
-version="v10.0.0-rc.6-fork.12"
-docker build . \
+version="v10.0.0-rc.6-fork.12" docker build . \
   --tag local/zkevm-contracts:$version \
   --build-arg POLYCLI_VERSION="v0.1.73" \
   --build-arg FOUNDRY_VERSION=stable \

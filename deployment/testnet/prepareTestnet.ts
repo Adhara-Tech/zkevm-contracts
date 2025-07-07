@@ -91,7 +91,26 @@ async function main() {
     const {trustedSequencer} = createRollupParameters;
 
     /*
-     *Deployment pol
+     * Deployment atc
+     */
+    const depositTokenName = "ATC Token";
+    const depositTokenSymbol = "USD";
+
+    const depositTokenFactory = await ethers.getContractFactory("ATC", deployer);
+    const depositTokenContract = await depositTokenFactory.deploy(
+      depositTokenName,
+      depositTokenSymbol,
+      deployer.address
+    );
+    await depositTokenContract.waitForDeployment();
+
+    console.log("#######################\n");
+    console.log("deposit token deployed to:", depositTokenContract.target);
+
+    createRollupParameters.depositTokenAddress = depositTokenContract.target;
+
+    /*
+     * Deployment pol
      */
     const polTokenName = "Pol Token";
     const polTokenSymbol = "POL";
